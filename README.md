@@ -22,6 +22,10 @@ Si tu souhaites utiliser un environnement isolé pour tes dépendances Python, v
 sudo apt-get update
 sudo apt-get install python3-pip python3-venv
 
+# Pour utiliser l'écran OLED
+sudo apt-get install -y libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev libopenjp2-7 libwebp-dev tk-dev python3-dev libtiff-dev
+
+
 # Créer un dossier pour ton projet
 mkdir ~/mon_projet_hx711
 cd ~/mon_projet_hx711

@@ -1,2 +1,7 @@
 HX711
 RPi.GPIO
+
+adafruit-circuitpython-ssd1306
+adafruit-circuitpython-framebuf
+adafruit-blinka
+Pillow
