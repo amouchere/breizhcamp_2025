@@ -144,8 +144,7 @@ def run_game(disp, hx):
                 ])
                 break
         else:
-            display_lines(disp, ["Erreur de lecture..."])
-            time.sleep(0.5)
+            time.sleep(0.2)
 
 # Programme principal
 def main():

@@ -33,3 +33,12 @@ python3 -m venv venv
 # Activer l'environnement virtuel (à faire systématiquement)
 cd ~/breizhcamp_2025
 source venv/bin/activate
+
+# Installation des dépendances
+pip install -r requirements.txt
+
+# Activation I2C : Interface Options → I2C → Enable.
+sudo raspi-config
+
+# Launch
+python3 indy_challenge.py
