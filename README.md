@@ -13,11 +13,12 @@ Ce projet utilise un capteur de force connecté à un module HX711 pour mesurer 
 
 ### 1. Préparer l'environnement
 
-#### Créer un environnement virtuel (recommandé) :
-
 Si tu souhaites utiliser un environnement isolé pour tes dépendances Python, voici les étapes à suivre :
 
 ```bash
+
+git clone git@github.com:amouchere/breizhcamp_2025.git
+
 # Installer les outils nécessaires (si pas déjà fait)
 sudo apt-get update
 sudo apt-get install python3-pip python3-venv
@@ -25,13 +26,10 @@ sudo apt-get install python3-pip python3-venv
 # Pour utiliser l'écran OLED
 sudo apt-get install -y libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev libopenjp2-7 libwebp-dev tk-dev python3-dev libtiff-dev
 
-
-# Créer un dossier pour ton projet
-mkdir ~/mon_projet_hx711
-cd ~/mon_projet_hx711
-
 # Créer un environnement virtuel
+cd ~/breizhcamp_2025
 python3 -m venv venv
 
-# Activer l'environnement virtuel
+# Activer l'environnement virtuel (à faire systématiquement)
+cd ~/breizhcamp_2025
 source venv/bin/activate
