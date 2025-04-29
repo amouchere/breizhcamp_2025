@@ -13,7 +13,7 @@ import adafruit_ssd1306
 DataPin = 5
 ClockPin = 6
 ButtonPin = 20  # Bouton "Rejouer"
-NumReadings = 5
+NumReadings = 15
 calibration_factor = 747.74
 
 # Init écran OLED
@@ -74,19 +74,28 @@ def get_weight(hx):
         print(f"Lectures HX711: {data}")
 
         try:
-            stddev = statistics.stdev(data)
+            mean = statistics.mean(data)      # Calcul de la moyenne de l'échantillon
+            stddev = statistics.pstdev(data)  # Calcul de l'écart type de l'échantillon
         except statistics.StatisticsError:
-            stddev = 0  # Si on n'a qu'une seule valeur
-
-        print(f"écart type: {stddev}")
-        threshold = 100000  # Ajustable selon ton capteur
-
-        if stddev < threshold:
-            average = statistics.mean(data)
-            return average / calibration_factor
-        else:
-            print(f"Écart-type trop élevé : {stddev:.2f}, rejet de la mesure.")
+            print("Erreur statistique.")
             return None
+
+        print(f"Moyenne: {mean}")
+        print(f"Écart-type (population): {stddev}")
+
+        threshold = 2 * stddev  # on garde les valeurs dans ±2σ
+        filtered = [x for x in data if abs(x - mean) <= threshold]
+
+        print(f"Valeurs filtrées ({len(filtered)} sur {len(data)}): {filtered}")
+
+        if len(filtered) < len(data) // 2:
+            print("Trop peu de valeurs fiables, mesure rejetée.")
+            return None
+
+        clean_mean = statistics.mean(filtered)
+        weight = clean_mean / calibration_factor
+        print(f"Poids estimé: {weight:.2f} g")
+        return weight
     else:
         print("Erreur : Pas assez de données valides.")
         return None
@@ -119,28 +128,29 @@ def run_game(disp, hx):
 
             print(f"Écart: {diff:+.2f} g")
 
-            if abs_diff <= 20:
+            if abs_diff <= 30:
                 display_lines(disp, [
-                    f"Écart: {diff:+.2f} g"
+                    f"Écart: {diff:+.2f} g",
+                    "tout va bien"
                 ])
             elif abs_diff <= 50:
                 display_lines(disp, [
                     f"Écart: {diff:+.2f} g",
-                    "Pas mal...",
-                    "attention !"
+                    "C'est juste !"
                 ])
-                break
-            elif abs_diff <= 75:
-                display_lines(disp, [
-                    f"Écart: {diff:+.2f} g",
-                    "C'est perdu !"
-                ])
-                break
             else:
                 display_lines(disp, [
                     f"Écart: {diff:+.2f} g",
                     "Fuis ! Le temple ",
                     "s'écroule !"
+                ])
+                time.sleep(1)
+                final_weight = get_weight(hx)
+                diff = final_weight - tare_weight
+                display_lines(disp, [
+                    f"Écart: {diff:+.2f} g",
+                    "Ta place est",
+                    "dans un musée !"
                 ])
                 break
         else:
