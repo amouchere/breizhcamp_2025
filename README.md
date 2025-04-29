@@ -16,6 +16,8 @@ Ce projet utilise un capteur de force connecté à un module HX711 pour mesurer 
 Si tu souhaites utiliser un environnement isolé pour tes dépendances Python, voici les étapes à suivre :
 
 ```bash
+# Activation I2C : Interface Options → I2C → Enable.
+sudo raspi-config
 
 git clone git@github.com:amouchere/breizhcamp_2025.git
 
@@ -30,15 +32,23 @@ sudo apt-get install -y libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev lib
 cd ~/breizhcamp_2025
 python3 -m venv venv
 
-# Activer l'environnement virtuel (à faire systématiquement)
+# Activer l'environnement virtuel
 cd ~/breizhcamp_2025
 source venv/bin/activate
 
 # Installation des dépendances
 pip install -r requirements.txt
+```
 
-# Activation I2C : Interface Options → I2C → Enable.
-sudo raspi-config
+### 2. Lancement du projet
+
+```bash
+# Activer l'environnement virtuel
+cd ~/breizhcamp_2025
+source venv/bin/activate
 
 # Launch
 python3 indy_challenge.py
+
+
+```
