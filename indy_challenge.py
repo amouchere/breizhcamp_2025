@@ -115,8 +115,8 @@ def wait_for_button_press():
 
 # Lancer une partie
 def run_game(disp, hx):
-    display_lines(disp, ["Indy Challenge!", "Place l'objet..."])
-    print("Indy Challenge! Place l'objet...")
+    display_lines(disp, ["Indy Challenge !", "Pesée de", "l'idole..."])
+    print("Indy Challenge! Pesée de l'idole...")
     time.sleep(2)
     tare_weight = measure_reference_weight(hx)
 

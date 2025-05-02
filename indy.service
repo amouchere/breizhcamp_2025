@@ -1,0 +1,15 @@
+[Unit]
+Description=Indy Challenge au démarrage
+After=network.target
+
+[Service]
+ExecStart=/home/pi/breizhcamp_2025/venv/bin/python3 /home/pi/breizhcamp_2025/indy_challenge.py
+WorkingDirectory=/home/pi/breizhcamp_2025
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

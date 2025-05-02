@@ -52,3 +52,14 @@ python3 indy_challenge.py
 
 
 ```
+
+### 3. Installation du service systemd
+
+```bash
+sudo cp ~/breizhcamp_2025/indy.service /etc/systemd/system/indy.service
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl enable indy.service
+sudo systemctl start indy.service
+
+```
