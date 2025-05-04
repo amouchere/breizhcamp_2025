@@ -1,5 +1,7 @@
 HX711
 RPi.GPIO
+gpiozero
+lgpio
 
 adafruit-circuitpython-ssd1306
 adafruit-circuitpython-framebuf

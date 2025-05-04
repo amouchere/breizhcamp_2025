@@ -8,13 +8,29 @@ import busio
 import statistics
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
+import logging
+import subprocess
+
+# Config log
+logging.basicConfig(
+    filename='/home/pi/indy.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(message)s'
+)
 
 # GPIO
 DataPin = 5
 ClockPin = 6
 ButtonPin = 20  # Bouton "Rejouer"
+BuzzerButtonPin = 16
 NumReadings = 15
 calibration_factor = 747.74
+
+def check_buzzer_button():
+    if GPIO.input(BuzzerButtonPin) == GPIO.LOW:
+        logging.info("Bouton buzzer pressé, lancement du script buzzer.")
+        subprocess.Popen(['python3', '/home/pi/breizhcamp_2025/test_buzzer.py'])
+        time.sleep(1)  # Pour éviter les doubles appuis
 
 # Init écran OLED
 def init_display():
@@ -52,14 +68,14 @@ def display_lines(disp, lines):
 def init_hx711():
     hx = HX711(dout_pin=DataPin, pd_sck_pin=ClockPin, gain=128, channel='A')
     if hx.reset():
-        print("HX711 prêt")
+        logging.info("HX711 prêt")
     else:
-        print("Erreur HX711")
+        logging.error("Erreur HX711")
     return hx
 
 # Mesure objet de référence
 def measure_reference_weight(hx):
-    print("Mesure de l'objet de référence...")
+    logging.info("Mesure de l'objet de référence...")
     tare_data = hx.get_raw_data(NumReadings)
     tare_average_raw = sum(tare_data) / len(tare_data)
     tare_weight = tare_average_raw / calibration_factor
@@ -77,7 +93,7 @@ def get_weight(hx):
             mean = statistics.mean(data)      # Calcul de la moyenne de l'échantillon
             stddev = statistics.pstdev(data)  # Calcul de l'écart type de l'échantillon
         except statistics.StatisticsError:
-            print("Erreur statistique.")
+            logging.info("Erreur statistique.")
             return None
 
         print(f"Moyenne: {mean}")
@@ -89,7 +105,7 @@ def get_weight(hx):
         print(f"Valeurs filtrées ({len(filtered)} sur {len(data)}): {filtered}")
 
         if len(filtered) < len(data) // 2:
-            print("Trop peu de valeurs fiables, mesure rejetée.")
+            logging.info("Trop peu de valeurs fiables, mesure rejetée.")
             return None
 
         clean_mean = statistics.mean(filtered)
@@ -97,17 +113,18 @@ def get_weight(hx):
         print(f"Poids estimé: {weight:.2f} g")
         return weight
     else:
-        print("Erreur : Pas assez de données valides.")
+        logging.info("Erreur : Pas assez de données valides.")
         return None
     
 # Init bouton GPIO
-def init_button():
+def init_buttons():
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(ButtonPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(BuzzerButtonPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Attente appui bouton
 def wait_for_button_press():
-    print("En attente du bouton pour rejouer...")
+    logging.info("En attente du bouton pour rejouer...")
     while GPIO.input(ButtonPin) == 0:
         time.sleep(0.1)
     while GPIO.input(ButtonPin) == 1:  # anti-rebond
@@ -115,8 +132,8 @@ def wait_for_button_press():
 
 # Lancer une partie
 def run_game(disp, hx):
-    display_lines(disp, ["Indy Challenge !", "Pesée de", "l'idole..."])
-    print("Indy Challenge! Pesée de l'idole...")
+    display_lines(disp, ["Pesée de", "l'idole..."])
+    logging.info("Indy Challenge! Pesée de l'idole...")
     time.sleep(2)
     tare_weight = measure_reference_weight(hx)
 
@@ -140,8 +157,8 @@ def run_game(disp, hx):
                 ])
             else:
                 display_lines(disp, [
-                    f"Écart: {diff:+.2f} g",
-                    "Fuis ! Le temple ",
+                    "Fuis ! !",
+                    "Le temple",
                     "s'écroule !"
                 ])
                 time.sleep(1)
@@ -160,9 +177,12 @@ def run_game(disp, hx):
 def main():
     disp = init_display()
     hx = init_hx711()
-    init_button()
+    init_buttons()
 
     while True:
+        display_lines(disp, ["Indy Challenge !"])
+        time.sleep(2)
+        wait_for_button_press()
         run_game(disp, hx)
         wait_for_button_press()
 
@@ -170,6 +190,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("Arrêté par l'utilisateur")
+        logging.info("Arrêt !")
     finally:
         GPIO.cleanup()
