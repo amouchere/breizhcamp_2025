@@ -1,0 +1,14 @@
+[Unit]
+Description=Indiana Jones Buzzer Player
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/breizhcamp_2025/indy_buzzer_theme.py
+WorkingDirectory=/home/pi/breizhcamp_2025
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target

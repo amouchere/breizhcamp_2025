@@ -9,7 +9,6 @@ import statistics
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
 import logging
-import subprocess
 
 # Config log
 logging.basicConfig(
@@ -22,15 +21,8 @@ logging.basicConfig(
 DataPin = 5
 ClockPin = 6
 ButtonPin = 20  # Bouton "Rejouer"
-BuzzerButtonPin = 16
 NumReadings = 15
 calibration_factor = 747.74
-
-def check_buzzer_button():
-    if GPIO.input(BuzzerButtonPin) == GPIO.LOW:
-        logging.info("Bouton buzzer pressé, lancement du script buzzer.")
-        subprocess.Popen(['python3', '/home/pi/breizhcamp_2025/test_buzzer.py'])
-        time.sleep(1)  # Pour éviter les doubles appuis
 
 # Init écran OLED
 def init_display():
@@ -120,7 +112,6 @@ def get_weight(hx):
 def init_buttons():
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(ButtonPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(BuzzerButtonPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Attente appui bouton
 def wait_for_button_press():

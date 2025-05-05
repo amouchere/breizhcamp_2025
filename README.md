@@ -55,11 +55,22 @@ python3 indy_challenge.py
 
 ### 3. Installation du service systemd
 
+#### Indy challenge service
+
 ```bash
 sudo cp ~/breizhcamp_2025/indy.service /etc/systemd/system/indy.service
 sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 sudo systemctl enable indy.service
 sudo systemctl start indy.service
+```
 
+#### Indy buzzer theme service
+
+```bash
+sudo cp ~/breizhcamp_2025/indy_buzzer_theme.service /etc/systemd/system/indy_buzzer_theme.service
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl enable indy_buzzer_theme.service
+sudo systemctl start indy_buzzer_theme.service
 ```

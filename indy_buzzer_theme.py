@@ -1,4 +1,4 @@
-from gpiozero import PWMOutputDevice
+from gpiozero import PWMOutputDevice, Button
 from time import sleep
 
 # Dictionnaire notes -> fréquences (ton dictionnaire corrigé ici)
@@ -17,47 +17,49 @@ notes_freqs = {
 
 # Mélodie de Indiana Jones
 melody = [
+    # MI FA SOL DO 
     ("E4", 0.25), ("F4", 0.25), ("G4", 0.25), ("C5", 0.75),
+    # RE MI FA 
     ("D4", 0.25), ("E4", 0.25), ("F4", 0.75),
+    # SOL LA SI FA
     ("G4", 0.25), ("A4", 0.25), ("B4", 0.25), ("F5", 0.75),
-    ("A4", 0.25), ("B4", 0.25), ("C4", 0.5), ("D4", 0.5), ("E5", 0.5),
-    ("E4", 0.25), ("F4", 0.25), ("G4", 0.25), ("C5", 0.75)
+    # LA SI DO RE MI 
+    ("A4", 0.25), ("B4", 0.20), ("C5", 0.75), ("D5", 0.75), ("E5", 0.5),
+    # MI FA SOL DO 
+    ("E4", 0.25), ("F4", 0.25), ("G4", 0.25), ("C5", 1),
+    # RE MI FA
+    ("D5", 0.25), ("E5", 0.25), ("F5", 0.75),
+    # SOL SOL MI RE SOL MI
+    ("G4", 0.25),("G4", 0.25),("E5", 0.25),("D5", 0.25),("G4", 0.25),("E5", 0.25),
+    # RE SOL MI RE SOL MI
+    ("D5", 0.25),("G4", 0.25),("E5", 0.25), ("D5", 0.25),("G4", 0.25),("E5", 0.60),
+    # RE
+    # ("E5", 0.25),
+    # MI FA SOL DO 
+    #("E4", 0.25), ("F4", 0.25)
 ]
 
-# MI FA SOL DO 
-# RE MI FA 
-# SOL LA SI FA
-# LA SI DO RE MI 
-# MI FA SOL DO 
-notes = [
-    "E4", "G4", "E4", "E4", "G4", "E4", "E4", "G4", "B4", "A4",
-    "G4", "E4", "D4", "E4", "R",  "E4", "G4", "E4", "E4", "G4",
-    "E4", "E4", "G4", "B4", "A4", "G4", "B4", "A4", "G4", "E4",
-    "D4", "E4"
-]
-
-durations = [
-    0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.25, 0.25,
-    0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.25, 0.5, 0.25, 0.25,
-    0.5, 0.25, 0.25, 0.25, 0.25, 0.5, 0.25, 0.25, 0.25, 0.25,
-    0.5, 0.5
-]
-
-# Instancier le buzzer sur GPIO 18
+# Instancier le buzzer et le bouton
 buzzer = PWMOutputDevice(18)
+button = Button(16)
 
 # Tempo
 bpm = 80  # plus rapide que 120 pour le vrai feeling Indiana Jones
 beat_duration = 60 / bpm
 
-# Jouer la mélodie
-for note, duration in melody:
-    frequency = notes_freqs.get(note, 0)
-    if frequency == 0:
+def play_melody():
+    for note, duration in melody:
+        freq = notes_freqs.get(note, 0)
+        if freq == 0:
+            buzzer.value = 0
+        else:
+            buzzer.frequency = freq
+            buzzer.value = 0.5
+        sleep(duration * beat_duration)
         buzzer.value = 0
-    else:
-        buzzer.frequency = frequency
-        buzzer.value = 0.5
-    sleep(duration * beat_duration)
-    buzzer.value = 0
-    sleep(0.05)  # petit blanc entre les notes
+        sleep(0.05)
+        # petit blanc entre les notes
+
+while True:
+    button.wait_for_press()
+    play_melody()
