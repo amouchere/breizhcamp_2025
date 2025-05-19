@@ -29,17 +29,18 @@ def init_display():
     i2c = busio.I2C(board.SCL, board.SDA)
     disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
     disp.fill(0)
+    disp.rotation = 2
     disp.show()
     return disp
 
 # Affichage multi-ligne centré
-def display_lines(disp, lines):
+def display_lines(disp, lines, size):
     disp.fill(0)
     image = Image.new('1', (disp.width, disp.height))
     draw = ImageDraw.Draw(image)
     
      # Charger une police TrueType qui supporte les accents
-    font = ImageFont.truetype('/home/pi/breizhcamp_2025/dejavu-sans-bold.ttf', 14)
+    font = ImageFont.truetype('/home/pi/breizhcamp_2025/dejavu-sans-bold.ttf', size)
 
 
     total_height = sum([draw.textbbox((0, 0), line, font=font)[3] for line in lines]) + (len(lines) - 1) * 2
@@ -123,7 +124,7 @@ def wait_for_button_press():
 
 # Lancer une partie
 def run_game(disp, hx):
-    display_lines(disp, ["Pesée de", "l'idole..."])
+    display_lines(disp, ["Pesée de", "l'idole..."], 14)
     logging.info("Indy Challenge! Pesée de l'idole...")
     time.sleep(2)
     tare_weight = measure_reference_weight(hx)
@@ -140,26 +141,26 @@ def run_game(disp, hx):
                 display_lines(disp, [
                     f"Écart: {diff:+.2f} g",
                     "tout va bien"
-                ])
+                ], 14)
             elif abs_diff <= 50:
                 display_lines(disp, [
                     f"Écart: {diff:+.2f} g",
                     "C'est juste !"
-                ])
+                ], 14)
             else:
                 display_lines(disp, [
                     "Fuis ! !",
                     "Le temple",
-                    "s'écroule !"
-                ])
+                    "s'écroule !"]
+                , 14)
                 time.sleep(1)
                 final_weight = get_weight(hx)
                 diff = final_weight - tare_weight
+                display_lines(disp, ["Ta place", "est dans", "un musée !"], 16)
+                time.sleep(2)
                 display_lines(disp, [
-                    f"Écart: {diff:+.2f} g",
-                    "Ta place est",
-                    "dans un musée !"
-                ])
+                    "Écart:", f"{diff:+.2f} g"
+                ], 18)
                 break
         else:
             time.sleep(0.2)
@@ -171,7 +172,7 @@ def main():
     init_buttons()
 
     while True:
-        display_lines(disp, ["Indy Challenge !"])
+        display_lines(disp, ["Indy", "Challenge !"], 18)
         time.sleep(2)
         wait_for_button_press()
         run_game(disp, hx)
