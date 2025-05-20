@@ -7,3 +7,6 @@ adafruit-circuitpython-ssd1306
 adafruit-circuitpython-framebuf
 adafruit-blinka
 Pillow
+
+RPLCD[i2c]
+smbus2

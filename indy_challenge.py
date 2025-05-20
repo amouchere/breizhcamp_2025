@@ -9,6 +9,7 @@ import statistics
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
 import logging
+from RPLCD.i2c import CharLCD
 
 # Config log
 logging.basicConfig(
@@ -24,38 +25,51 @@ ButtonPin = 20  # Bouton "Rejouer"
 NumReadings = 15
 calibration_factor = 747.74
 
-# Init écran OLED
-def init_display():
-    i2c = busio.I2C(board.SCL, board.SDA)
-    disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
-    disp.fill(0)
-    disp.rotation = 2
-    disp.show()
-    return disp
+# # Init écran OLED
+# def init_display():
+#     i2c = busio.I2C(board.SCL, board.SDA)
+#     disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
+#     disp.fill(0)
+#     disp.rotation = 2
+#     disp.show()
+#     return disp
 
-# Affichage multi-ligne centré
-def display_lines(disp, lines, size):
-    disp.fill(0)
-    image = Image.new('1', (disp.width, disp.height))
-    draw = ImageDraw.Draw(image)
+# # Affichage multi-ligne centré
+# def display_lines(disp, lines, size):
+#     disp.fill(0)
+#     image = Image.new('1', (disp.width, disp.height))
+#     draw = ImageDraw.Draw(image)
     
-     # Charger une police TrueType qui supporte les accents
-    font = ImageFont.truetype('/home/pi/breizhcamp_2025/dejavu-sans-bold.ttf', size)
+#      # Charger une police TrueType qui supporte les accents
+#     font = ImageFont.truetype('/home/pi/breizhcamp_2025/dejavu-sans-bold.ttf', size)
 
 
-    total_height = sum([draw.textbbox((0, 0), line, font=font)[3] for line in lines]) + (len(lines) - 1) * 2
-    y_offset = (disp.height - total_height) // 2
+#     total_height = sum([draw.textbbox((0, 0), line, font=font)[3] for line in lines]) + (len(lines) - 1) * 2
+#     y_offset = (disp.height - total_height) // 2
 
-    y = y_offset
-    for line in lines:
-        bbox = draw.textbbox((0, 0), line, font=font)
-        width = bbox[2] - bbox[0]
-        x = (disp.width - width) // 2
-        draw.text((x, y), line, font=font, fill=255)
-        y += (bbox[3] - bbox[1]) + 2
+#     y = y_offset
+#     for line in lines:
+#         bbox = draw.textbbox((0, 0), line, font=font)
+#         width = bbox[2] - bbox[0]
+#         x = (disp.width - width) // 2
+#         draw.text((x, y), line, font=font, fill=255)
+#         y += (bbox[3] - bbox[1]) + 2
 
-    disp.image(image)
-    disp.show()
+#     disp.image(image)
+#     disp.show()
+
+
+# Init écran LCD 16x2 via I2C
+def init_display():
+    lcd = CharLCD('PCF8574', 0x3f)
+    lcd.clear()
+    return lcd
+
+def display_lines(lcd, lines, size=None):  # 'size' est ignoré ici
+    lcd.clear()
+    for i, line in enumerate(lines[:2]):  # LCD 2 lignes
+        lcd.cursor_pos = (i, 0)
+        lcd.write_string(line.ljust(16)[:16])
 
 # Init HX711
 def init_hx711():
@@ -66,15 +80,6 @@ def init_hx711():
         logging.error("Erreur HX711")
     return hx
 
-# Mesure objet de référence
-def measure_reference_weight(hx):
-    logging.info("Mesure de l'objet de référence...")
-    tare_data = hx.get_raw_data(NumReadings)
-    tare_average_raw = sum(tare_data) / len(tare_data)
-    tare_weight = tare_average_raw / calibration_factor
-    print(f"Poids de référence : {tare_weight:.2f} g")
-    return tare_weight
-
 # Mesure poids actuel
 def get_weight(hx):
     data = hx.get_raw_data(NumReadings)
@@ -82,18 +87,23 @@ def get_weight(hx):
     if data and len(data) == NumReadings:
         print(f"Lectures HX711: {data}")
 
+        prefiltered = [x for x in data if (x < 2000*calibration_factor) & (x > calibration_factor)]
+        print(f"prefiltered : {prefiltered}")
+
         try:
-            mean = statistics.mean(data)      # Calcul de la moyenne de l'échantillon
-            stddev = statistics.pstdev(data)  # Calcul de l'écart type de l'échantillon
+            mean = statistics.mean(prefiltered)      # Calcul de la moyenne de l'échantillon
+            stddev = statistics.pstdev(prefiltered)  # Calcul de l'écart type de l'échantillon
         except statistics.StatisticsError:
             logging.info("Erreur statistique.")
             return None
 
+        
         print(f"Moyenne: {mean}")
         print(f"Écart-type (population): {stddev}")
 
         threshold = 2 * stddev  # on garde les valeurs dans ±2σ
-        filtered = [x for x in data if abs(x - mean) <= threshold]
+
+        filtered = [x for x in prefiltered if abs(x - mean) <= threshold]
 
         print(f"Valeurs filtrées ({len(filtered)} sur {len(data)}): {filtered}")
 
@@ -124,10 +134,11 @@ def wait_for_button_press():
 
 # Lancer une partie
 def run_game(disp, hx):
-    display_lines(disp, ["Pesée de", "l'idole..."], 14)
-    logging.info("Indy Challenge! Pesée de l'idole...")
+    display_lines(disp, ["Pesee de", "l'idole..."], 14)
+    logging.info("Indy Challenge! Pesee de l'idole...")
     time.sleep(2)
-    tare_weight = measure_reference_weight(hx)
+    tare_weight = get_weight(hx)
+    print(f"Poids de référence : {tare_weight:.2f} g")
 
     while True:
         weight = get_weight(hx)
@@ -139,27 +150,26 @@ def run_game(disp, hx):
 
             if abs_diff <= 30:
                 display_lines(disp, [
-                    f"Écart: {diff:+.2f} g",
-                    "tout va bien"
+                    f"Ecart: {diff:+.2f} g",
+                    "Tout va bien"
                 ], 14)
             elif abs_diff <= 50:
                 display_lines(disp, [
-                    f"Écart: {diff:+.2f} g",
+                    f"Ecart: {diff:+.2f} g",
                     "C'est juste !"
                 ], 14)
             else:
                 display_lines(disp, [
-                    "Fuis ! !",
-                    "Le temple",
-                    "s'écroule !"]
+                    "Fuis! Le temple",
+                    "  s'ecroule!"]
                 , 14)
                 time.sleep(1)
                 final_weight = get_weight(hx)
                 diff = final_weight - tare_weight
-                display_lines(disp, ["Ta place", "est dans", "un musée !"], 16)
+                display_lines(disp, ["Ta place est ", "dans un musee !"], 16)
                 time.sleep(2)
                 display_lines(disp, [
-                    "Écart:", f"{diff:+.2f} g"
+                    "Ecart:", f"{diff:+.2f} g"
                 ], 18)
                 break
         else:
@@ -172,7 +182,7 @@ def main():
     init_buttons()
 
     while True:
-        display_lines(disp, ["Indy", "Challenge !"], 18)
+        display_lines(disp, ["Indy Challenge !", "         par G2S"], 18)
         time.sleep(2)
         wait_for_button_press()
         run_game(disp, hx)
