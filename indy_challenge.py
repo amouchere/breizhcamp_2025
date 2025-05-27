@@ -22,7 +22,7 @@ logging.basicConfig(
 DataPin = 5
 ClockPin = 6
 ButtonPin = 20  # Bouton "Rejouer"
-NumReadings = 15
+NumReadings = 20
 calibration_factor = 747.74
 
 # # Init écran OLED
@@ -97,7 +97,6 @@ def get_weight(hx):
             logging.info("Erreur statistique.")
             return None
 
-        
         print(f"Moyenne: {mean}")
         print(f"Écart-type (population): {stddev}")
 
