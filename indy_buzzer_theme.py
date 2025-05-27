@@ -61,5 +61,8 @@ def play_melody():
         # petit blanc entre les notes
 
 while True:
+    
     button.wait_for_press()
+    
+    print("press !")
     play_melody()
