@@ -162,11 +162,9 @@ def run_game(disp, hx):
                     "Fuis! Le temple",
                     "  s'ecroule!"]
                 , 14)
-                time.sleep(1)
+                time.sleep(2)
                 final_weight = get_weight(hx)
                 diff = final_weight - tare_weight
-                display_lines(disp, ["Ta place est ", "dans un musee !"], 16)
-                time.sleep(2)
                 display_lines(disp, [
                     "Ecart:", f"{diff:+.2f} g"
                 ], 18)
@@ -182,7 +180,6 @@ def main():
 
     while True:
         display_lines(disp, ["Indy Challenge !", "         par G2S"], 18)
-        time.sleep(2)
         wait_for_button_press()
         run_game(disp, hx)
         wait_for_button_press()
