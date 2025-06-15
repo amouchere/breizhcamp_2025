@@ -2,12 +2,9 @@
 from hx711 import HX711
 import RPi.GPIO as GPIO
 import time
+import threading
 from datetime import datetime
-import board
-import busio
 import statistics
-from PIL import Image, ImageDraw, ImageFont
-import adafruit_ssd1306
 import logging
 from RPLCD.i2c import CharLCD
 
@@ -24,40 +21,6 @@ ClockPin = 6
 ButtonPin = 20  # Bouton "Rejouer"
 NumReadings = 20
 calibration_factor = 747.74
-
-# # Init écran OLED
-# def init_display():
-#     i2c = busio.I2C(board.SCL, board.SDA)
-#     disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
-#     disp.fill(0)
-#     disp.rotation = 2
-#     disp.show()
-#     return disp
-
-# # Affichage multi-ligne centré
-# def display_lines(disp, lines, size):
-#     disp.fill(0)
-#     image = Image.new('1', (disp.width, disp.height))
-#     draw = ImageDraw.Draw(image)
-    
-#      # Charger une police TrueType qui supporte les accents
-#     font = ImageFont.truetype('/home/pi/breizhcamp_2025/dejavu-sans-bold.ttf', size)
-
-
-#     total_height = sum([draw.textbbox((0, 0), line, font=font)[3] for line in lines]) + (len(lines) - 1) * 2
-#     y_offset = (disp.height - total_height) // 2
-
-#     y = y_offset
-#     for line in lines:
-#         bbox = draw.textbbox((0, 0), line, font=font)
-#         width = bbox[2] - bbox[0]
-#         x = (disp.width - width) // 2
-#         draw.text((x, y), line, font=font, fill=255)
-#         y += (bbox[3] - bbox[1]) + 2
-
-#     disp.image(image)
-#     disp.show()
-
 
 # Init écran LCD 16x2 via I2C
 def init_display():
@@ -131,12 +94,41 @@ def wait_for_button_press():
     while GPIO.input(ButtonPin) == 1:  # anti-rebond
         time.sleep(0.1)
 
+def animation_pesee(disp, stop_event):
+    dots = 0
+    while not stop_event.is_set():
+        display_lines(disp, ["Pesee de l'idole", "." * (dots % 10)])
+        dots += 1
+        time.sleep(0.2)
+
+def animation_indy_challenge(disp, stop_event):
+    visible = True
+    while not stop_event.is_set():
+        if visible:
+            display_lines(disp, ["Indy Challenge !", "> par G2S"])
+        else:
+            display_lines(disp, ["Indy Challenge !", "  par G2S"])
+        visible = not visible
+        time.sleep(0.5)
+
+
 # Lancer une partie
 def run_game(disp, hx):
-    display_lines(disp, ["Pesee de", "l'idole..."], 14)
+    stop_event = threading.Event()
+    anim_thread = threading.Thread(target=animation_pesee, args=(disp, stop_event))
+    anim_thread.start()
+
     logging.info("Indy Challenge! Pesee de l'idole...")
-    time.sleep(2)
     tare_weight = get_weight(hx)
+
+    stop_event.set()  # on arrête l’animation
+    anim_thread.join()
+    
+    
+    # display_lines(disp, ["Pesee de", "l'idole..."], 14)
+    # logging.info("Indy Challenge! Pesee de l'idole...")
+    # time.sleep(2)
+    # tare_weight = get_weight(hx)
     print(f"Poids de référence : {tare_weight:.2f} g")
 
     while True:
