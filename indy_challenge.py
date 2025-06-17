@@ -124,6 +124,10 @@ def run_game(disp, hx):
     stop_event.set()  # on arrête l’animation
     anim_thread.join()
     
+    if tare_weight is None:
+        display_lines(disp, ["Erreur tare", "Rejoue!"])
+        logging.error("Tare échouée.")
+        return
     print(f"Poids de référence : {tare_weight:.2f} g")
 
     while True:
