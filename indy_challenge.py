@@ -50,7 +50,7 @@ def get_weight(hx):
     if data and len(data) == NumReadings:
         print(f"Lectures HX711: {data}")
 
-        prefiltered = [x for x in data if (x < 2000*calibration_factor) & (x > calibration_factor)]
+        prefiltered = [x for x in data if (x < 2000*calibration_factor) and (x > calibration_factor)]
         print(f"prefiltered : {prefiltered}")
 
         try:
@@ -74,7 +74,7 @@ def get_weight(hx):
             return None
 
         clean_mean = statistics.mean(filtered)
-        weight = clean_mean / calibration_factor
+        weight = round(clean_mean / calibration_factor)
         print(f"Poids estimé: {weight:.2f} g")
         return weight
     else:
@@ -124,11 +124,6 @@ def run_game(disp, hx):
     stop_event.set()  # on arrête l’animation
     anim_thread.join()
     
-    
-    # display_lines(disp, ["Pesee de", "l'idole..."], 14)
-    # logging.info("Indy Challenge! Pesee de l'idole...")
-    # time.sleep(2)
-    # tare_weight = get_weight(hx)
     print(f"Poids de référence : {tare_weight:.2f} g")
 
     while True:
@@ -137,17 +132,17 @@ def run_game(disp, hx):
             diff = weight - tare_weight
             abs_diff = abs(diff)
 
-            print(f"Écart: {diff:+.2f} g")
+            print(f"Écart: {diff:+} g")
 
             if abs_diff <= 30:
                 display_lines(disp, [
-                    f"Ecart: {diff:+.2f} g",
-                    "Tout va bien"
+                    f"Ecart: {diff:+} g",
+                    "C'est bon !"
                 ], 14)
             elif abs_diff <= 50:
                 display_lines(disp, [
-                    f"Ecart: {diff:+.2f} g",
-                    "C'est juste !"
+                    f"Ecart: {diff:+} g",
+                    "C'est limite !"
                 ], 14)
             else:
                 display_lines(disp, [
@@ -158,7 +153,7 @@ def run_game(disp, hx):
                 final_weight = get_weight(hx)
                 diff = final_weight - tare_weight
                 display_lines(disp, [
-                    "Ecart:", f"{diff:+.2f} g"
+                    "Ecart: "+ f"{diff:+} g", "Rejouer ?"
                 ], 18)
                 break
         else:
