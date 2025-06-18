@@ -17,7 +17,7 @@ LOG_FILE = "/home/pi/indy.log"
 NUM_READINGS = 5
 CALIBRATION_FACTOR = 747.74
 WEIGHT_CHANGE_THRESHOLD = 10  # en grammes
-REPLACEMENT_TIME_LIMIT = 2    # en secondes
+REPLACEMENT_TIME_LIMIT = 1    # en secondes
 
 # --- GPIO ---
 DATA_PIN = 5
@@ -26,7 +26,7 @@ BUTTON_PIN = 20  # Bouton "Rejouer"
 
 
 # --- Config log ---
-LOG_LEVEL = logging.INFO
+LOG_LEVEL = logging.WARNING
 
 logging.basicConfig(
     filename=LOG_FILE,
@@ -50,7 +50,7 @@ def display_lines(lcd, lines, size=None):
 def init_hx711():
     hx = HX711(dout_pin=DATA_PIN, pd_sck_pin=CLOCK_PIN, gain=128, channel='A')
     if hx.reset():
-        logging.info("HX711 prêt")
+        logging.warning("HX711 prêt")
     else:
         logging.error("Erreur HX711")
     return hx
@@ -60,10 +60,10 @@ def get_weight(hx):
     data = hx.get_raw_data(NUM_READINGS)
 
     if data and len(data) == NUM_READINGS:
-        logging.debug(f"----")
-        logging.debug(f"Lectures HX711: {data}")
-        prefiltered = [x for x in data if (x < 1500 * CALIBRATION_FACTOR) and (x > 100 * CALIBRATION_FACTOR)]
-        logging.debug(f"filtre brut    :   {prefiltered}")
+        logging.info(f"----")
+        logging.info(f"Lectures HX711: {data}")
+        prefiltered = [x for x in data if (x < 2000 * CALIBRATION_FACTOR) and (x > 100 * CALIBRATION_FACTOR)]
+        logging.info(f"filtre brut    :   {prefiltered}")
 
         try:
             mean = statistics.mean(prefiltered)     # Moyenne
@@ -74,17 +74,17 @@ def get_weight(hx):
             logging.warning("Erreur statistique.")
             return None
 
-        logging.debug(f"Moyenne: {mean}")
-        logging.debug(f"Médiane: {median}")
-        logging.debug(f"MAD: {mad}")
-        logging.debug(f"Écart-type (population): {stddev}")
+        logging.info(f"Moyenne: {mean}")
+        logging.info(f"Médiane: {median}")
+        logging.info(f"MAD: {mad}")
+        logging.info(f"Écart-type (population): {stddev}")
 
         threshold = 3 * mad if mad > 0 else 1000  # fallback si mad=0
         filtered = [x for x in prefiltered if abs(x - median) <= threshold]
         # threshold = 2 * stddev
         # filtered = [x for x in prefiltered if abs(x - mean) <= threshold]
-        logging.debug(f"filtre mad : {filtered}")
-        logging.debug(f"Valeurs filtrées ({len(filtered)} sur {len(data)}): {filtered}")
+        logging.info(f"filtre mad : {filtered}")
+        logging.info(f"Valeurs filtrées ({len(filtered)} sur {len(data)}): {filtered}")
 
         if len(filtered) < len(data) // 2:
             logging.warning("Trop peu de valeurs fiables, mesure rejetée.")
@@ -92,7 +92,7 @@ def get_weight(hx):
 
         clean_mean = statistics.mean(filtered)
         weight = round(clean_mean / CALIBRATION_FACTOR)
-        logging.debug(f"Poids estimé: {weight:.2f} g")
+        logging.info(f"Poids estimé: {weight:.2f} g")
         return weight
     else:
         logging.warning("Erreur : Pas assez de données valides.")
@@ -105,7 +105,7 @@ def init_buttons():
 
 # --- Attente bouton ---
 def wait_for_button_press():
-    logging.info("En attente du bouton pour rejouer...")
+    logging.warning("En attente du bouton pour rejouer...")
     while GPIO.input(BUTTON_PIN) == 0:
         time.sleep(0.1)
     while GPIO.input(BUTTON_PIN) == 1:
@@ -194,6 +194,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        logging.info("Arrêt !")
+        logging.warning("Arrêt !")
     finally:
         GPIO.cleanup()
