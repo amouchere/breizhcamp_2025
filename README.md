@@ -1,4 +1,13 @@
-# Projet Capteur de Force avec HX711 pour BreizhCamp
+![indy](./indiana-jones-raiders-of-the-lost-ark.gif)
+
+<a href="https://gitmoji.dev">
+  <img
+    src="https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg?style=flat-square"
+    alt="Gitmoji"
+  />
+</a>
+
+# Breizhcamp 2025 : Indiana Jones Challenge !
 
 Ce projet utilise un capteur de force connecté à un module HX711 pour mesurer des poids via un Raspberry Pi. Il est conçu pour être présenté lors de la conférence **BreizhCamp** afin de démontrer des applications de capteurs dans des projets IoT.
 
@@ -8,6 +17,8 @@ Ce projet utilise un capteur de force connecté à un module HX711 pour mesurer 
 - Module HX711
 - Cellule de charge (balance)
 - Câbles de connexion
+- Ecran LCD
+- Buzzer passif
 
 ## Installation du projet sur Raspberry Pi
 
