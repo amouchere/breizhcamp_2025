@@ -143,7 +143,7 @@ def run_game(disp, hx):
 
     print(f"Poids de référence : {tare_weight} g")
 
-    display_lines(disp, ["A toi de jouer !", "Precis et rapide"])
+    display_lines(disp, ["A toi de jouer !",""])
     logging.info("Attente du retrait de la statue...")
 
     while True:
